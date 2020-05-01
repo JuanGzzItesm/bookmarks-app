@@ -5,6 +5,11 @@ let jsonParser = bodyParser.json();
 let morgan = require('morgan');
 let uuid = require( 'uuid' );
 
+let mongoose = require( 'mongoose' );
+
+let { bookmarkList } = require( './model' );
+let {DATABASE_URL, PORT} = require( './config' );
+
 
 const app = express();
 
@@ -57,6 +62,8 @@ function validateApi( req, res, next){
 
 app.use( validateApi );
 
+//THIS IS NOT NEEDED FOR THE DATABASE
+
 let bookmList = [
 
 	{
@@ -65,21 +72,6 @@ let bookmList = [
 		description: "WEBSITE",
 		url : "https://www.prueba.com/",
 		rating : 10
-	},
-	{
-		id : uuid.v4(),
-		title : "Youtube",
-		description: "VIDEO STREAMING WEBSITE",
-		url : "https://www.youtube.com/",
-		rating : 10
-	},
-	{
-		id : uuid.v4(),
-		title : "Facebook",
-		description: "Social website to share photos",
-		url : "https://www.facebook.com/",
-		rating : 9
-
 	}
 ];
 
@@ -87,8 +79,17 @@ let bookmList = [
 
 app.get('/api/bookmarks',(req,res) =>{
 
+	 bookmarkList.getAll()
+        .then( bookmarkList => {
+            return res.status( 200 ).json(bookmarkList);
+        })
 
-	return res.status( 200 ).json(bookmList);
+        .catch( error => {
+            console.log(error);
+            res.statusMessage = "ERROR CONNECTING WITH DATA BASE"
+            return res.status( 500 ).send();
+        });
+	
 });
 
 
@@ -105,22 +106,31 @@ app.get('/api/bookmark',(req,res) =>{
 		return res.status( 406 ).end();
 	}
 
-	let result = bookmList.find( ( bookmark ) => {
+	let findTitle = { title : title};
 
+	let result = bookmarkList.findOne( findTitle )
+        .then( bookmarkList => {
 
-		if (bookmark.title == title){
+        		if(bookmarkList == null){
 
-			return bookmark;
-		}
-	});
+        			res.statusMessage = "The title does not exists"
+					return res.status( 404 ).end();
+        		}else {
 
-	if ( !result ){
+        			return res.status( 200 ).json(bookmarkList);
+        		}
 
-		res.statusMessage = "The title does not exists"
-		return res.status( 404 ).end();
-	}
+            
+        })
 
-	return res.status( 200 ).json({result});
+        .catch( error => {
+            console.log(error);
+            res.statusMessage = "ERROR CONNECTING WITH DATA BASE"
+            return res.status( 500 ).send();
+        });
+
+	
+
 });
 
 //POST A NEW BOOK MARK 
@@ -150,11 +160,16 @@ app.post('/api/bookmarks', jsonParser ,(req,res) =>{
 		rating : rating
 	}
 
-	bookmList.push( newBM );
+	bookmarkList.create( newBM )
+        		.then( bookmarkList => {
+            	return res.status( 200 ).json( bookmarkList );
+        	})
+        		.catch( error => {
+            	console.log(error);
+            	res.statusMessage = "ERROR CONNECTING WITH DATA BASE"
+            	return res.status( 500 ).send();
+        	});
 
-	console.log(newBM);
-
-	return res.status(201).json(newBM);
 		
 });
 
@@ -163,45 +178,62 @@ app.post('/api/bookmarks', jsonParser ,(req,res) =>{
 
 app.delete('/api/bookmark',(req,res) =>{
 
+	
 	let idDelete = req.query.id;
 
-		 let result = bookmList.find( (element) => {
+	let objRemove = { id : idDelete };
 
-			if (element.id == idDelete){
+	if ( idDelete === undefined){
 
-				
-				return element;
-			}
-		
-		});
+		res.statusMessage = "Missing the bookmark ID"
+		return res.status( 406 ).end();
+	}
 
-		 if (result){
+	//WE USE THIS METHOD TO VERIFY IF THE ID EXIST
 
-		 	bookmList = bookmList.filter((element) => {
+	let result = bookmarkList.findOne( objRemove )
+        .then( bookmarkList => {
 
-		 		if ( result.id != element.id){
-		 			return element
-		 		}
-		 	});
+        		if(bookmarkList == null){
 
-		 		bookmList.splice(idDelete,1); 
-		 		return res.status(200).json({});
-		 }else{
+        			res.statusMessage = "The ID does not exists"
+					return res.status( 404 ).end();
+        		}else {
 
-		 	res.statusMessage = "ID does NOT exists.";
-		 	return res.status(404).json({})
-		 }
+        		//IF IT EXIST WE USE THE METHOD REMOVE
+
+        			bookmarkList.remove(objRemove) 
+    				.then( bookmarkList => {
+
+    			console.log(bookmarkList);
+           		return res.status( 201 ).json( bookmarkList );
+    	 		})
+        		.catch( error => {
+           			 res.statusMessage = "ERROR CONNECTING WITH DATA BASE";
+           			 return res.status( 500 ).json( error );
+     			});
+
+        		}
+
+            
+        })
+
+        .catch( error => {
+            console.log(error);
+            res.statusMessage = "ERROR CONNECTING WITH DATA BASE"
+            return res.status( 500 ).send();
+        });
 
 	
 });
 
 //PATCH TO UPDATE AN ELEMENT FINDING BY THE ID 
 
-app.patch('/api/bookmark/:id',jsonParser,(req,res) =>{
+app.patch('/api/bookmark/',jsonParser,(req,res) =>{
 
 	
 	let idBody = req.body.id;
-	let idParam = req.params.id;
+	let idParam = req.query.id;
 
 	if ( idBody == undefined ){
 
@@ -211,54 +243,66 @@ app.patch('/api/bookmark/:id',jsonParser,(req,res) =>{
 
 	if (idBody != idParam){
 
+		
 		res.statusMessage = "THE ID IN THE PARAMETERS DOES NOT MATCH THE BODY ID";
 		return res.status( 409 ).send();
 	}
 	
-	let result = bookmList.find((element) =>{
+	let bookmarkNew = req.body;
+	let idOld = { id : idParam };
 
-				if (idBody == element.id){
-
-					console.log("HIZO MATCH EL CAMBIO CON LO QUE EXSTE");
-					
-
-					if (req.body.title != undefined){
-
-
-						element.title =req.body.title;
-					}
-
-					if (req.body.description != undefined){
-
-						element.description =req.body.description;
-					}
-
-					if (req.body.url != undefined){
-
-
-						element.url =req.body.url;
-					}
-
-					if (req.body.rating != undefined){
-
-						element.rating =req.body.rating;
-					}
-
-					console.log(element);
-					return res.status(202).json(element);
-				}
-				
-
-				
-		});
+	bookmarkList.update(idOld, bookmarkNew)
+	.then(bookmarkList =>{
+		return res.status( 201 ).json( bookmarkNew );
+	})
+	.catch( error => {
+        res.statusMessage = "ERROR CONNECTING WITH DATA BASE";
+        return res.status( 500 ).json( error );
+    });
+	
 
 	
 });
 
 
-app.listen(8080, () => {
+let server;
 
-	console.log("This server is running in port 8080.");
-});
+function runServer(port, databaseUrl){
+	return new Promise( (resolve, reject ) => {
+		mongoose.connect(databaseUrl, response => {
+			if ( response ){
+				return reject(response);
+			}
+			else{
+				server = app.listen(port, () => {
+					console.log( "App is running on port " + port );
+					resolve();
+				})
+				.on( 'error', err => {
+					mongoose.disconnect();
+					return reject(err);
+				})
+			}
+		});
+	});
+}
 
+function closeServer(){
+	return mongoose.disconnect()
+		.then(() => {
+			return new Promise((resolve, reject) => {
+				console.log('Closing the server');
+				server.close( err => {
+					if (err){
+						return reject(err);
+					}
+					else{
+						resolve();
+					}
+				});
+			});
+		});
+}
+runServer( PORT, DATABASE_URL );
 
+module.exports = { app, runServer, closeServer }
