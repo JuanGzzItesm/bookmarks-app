@@ -17,50 +17,18 @@ const API_TOKEN = "2abbf7c3-245b-404f-9473-ade729ed4653";
 
 app.use( morgan( 'dev' ) );
 
+app.use(express.static('public'));
 
-//MIDDLEWARE FOR VALIDATE THE APIKEY 2abbf7c3-245b-404f-9473-ade729ed4653
+app.use(function(req, res, next) {
+ res.header("Access-Control-Allow-Origin", "*");
+ res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
+ res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE");
+ if (req.method === "OPTIONS") {
+ return res.send(204);
+ }
+ next();
+});
 
-function validateApi( req, res, next){
-
-	console.log("inside MIDDLEWARE");
-
-	let token = req.headers.authorization;
-
-	let tokenA = req.query.apiKey;
-
-	let tokenB = req.headers.bookapikey;
-
-	if ( tokenA == API_TOKEN){
-
-		next();
-	}
-
-
-	if ( tokenB == API_TOKEN){
-
-		next();
-	}
-
-	if ( !token ){
-
-		res.statusMessage = "The authorization APIKEY is missing";
-		return res.status(401).end();
-	}
-
-
-	if ( token != `Bearer ${API_TOKEN}` ){
-
-		res.statusMessage = "The authorization APIKEY does not MATCH";
-		return res.status(401).end();
-
-	}
-
-	next();
-}
-
-//USE THE VALIDATE FOR ALL THE APPS
-
-app.use( validateApi );
 
 //THIS IS NOT NEEDED FOR THE DATABASE
 
@@ -306,3 +274,4 @@ function closeServer(){
 runServer( PORT, DATABASE_URL );
 
 module.exports = { app, runServer, closeServer }
+
