@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+     <meta name="viewport" content="width=device-width">
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="./css/index.css">
+    <title> Bookmarks - App </title>
+  </head>
+  <body>
+  	<main>
+  		<h1> Bookmarks App</h1>
+      <div id="bookmarks">
+
+      </div>
+       <form id = "search">
+        <input type="text" id="title" placeholder="Search by Title">
+        <input type="submit" id = "submit" value="SEARCH">
+        <input type="submit" id = "submitReset" value="RESET">
+      </form>
+
+      <form id = "newB">
+        <h3> ADD A NEW BOOKMARK </h3>
+
+        <div><input type="text" id="newT" placeholder="TITLE"></div>
+        <div><textarea id="newD" placeholder="DESCRIPTION"></textarea></div>
+        <input type="text" id="newW" placeholder="URL">
+        <input type="number" id="newR" placeholder="RATING">
+        <div><input type="submit" id = "submitN" value="ADD NEW"></div>
+    </form>
+
+    <form id = "deleteB">
+        <h3> DELETE BOOKMARK </h3>
+
+        <input type="text" id="deleteId" placeholder="Delete by ID">
+         <input type="submit" id = "submitD" value="DELETE">
+    </form>
+
+    <form id = "updateB">
+        <h3> UPDATE BOOKMARK </h3>
+
+        <input type="text" id="updateId" placeholder=" ID ">
+        <div><input type="text" id="updateT" placeholder=" NEW TITLE"></div>
+        <div><textarea id="updateD" placeholder="NEW DESCRIPTION"></textarea></div>
+        <input type="text" id="updateU" placeholder="NEW URL">
+        <input type="number" id="updateR" placeholder="NEW RATING">
+        <div><input type="submit" id = "submitB" value="UPDATE"></div>
+
+    </form>
+
+
+
+      <script type="text/javascript" src="./js/index.js"></script>
+  </body>
+  </html>
