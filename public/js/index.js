@@ -20,7 +20,7 @@ function bookmarkOption(){
 
 			event.preventDefault();
 
-				let url = 'http://localhost:8080/api/bookmark?title='+document.getElementById('title').value;
+				let url = '/api/bookmark?title='+document.getElementById('title').value;
 				let settings = {
 					method : "GET"
 				}
@@ -50,7 +50,7 @@ function bookmarkOption(){
 
 			if(title!=""&& description!=""&& link !=""&& rating !=""){
 
-				let url = 'http://localhost:8080/api/bookmarks';
+				let url = '/api/bookmarks';
 				
 				let bodyJSON = {
 					"title" : title,
@@ -87,7 +87,7 @@ function bookmarkOption(){
 
 				event.preventDefault();
 
-				let url = 'http://localhost:8080/api/bookmark?id='+document.getElementById('deleteId').value;
+				let url = '/api/bookmark?id='+document.getElementById('deleteId').value;
 				let settings = {
 					method : "DELETE",
 				}
@@ -112,7 +112,7 @@ function bookmarkOption(){
 
 			event.preventDefault();
 
-			let url = 'http://localhost:8080/api/bookmark?id='+document.getElementById('updateId').value;
+			let url = '/api/bookmark?id='+document.getElementById('updateId').value;
 
 			let id = document.getElementById('updateId').value;
 
@@ -169,7 +169,7 @@ function bookmarkOption(){
 
 function bookmarksAll(){
 
-	let url = 'http://localhost:8080/api/bookmarks';
+	let url = '/api/bookmarks';
 
 	let settings = {
 		method : "GET"
